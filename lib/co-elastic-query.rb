@@ -122,12 +122,11 @@ class Elastic
             end
 
             if @search.present?
-                # HACK:: This is such a hack.
-                # TODO:: join('* ') + '*' (i.e fix ES tokeniser and then match start of words)
+                # Break the terms up purely on whitespace
                 {
                     query: {
                         query_string: {
-                            query: '*' + @search.scan(/[a-zA-Z0-9]+/).join('* *') + '*'
+                            query: '*' + @search.scan(/\S+/).join('* *') + '*'
                         }
                     },
                     filters: fieldfilters,
