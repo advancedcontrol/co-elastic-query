@@ -237,12 +237,13 @@ class Elastic
         # if a formatter block is supplied, each loaded record is passed to it
         # allowing annotation/conversion of records using data from the model
         # and current request (e.g groups are annotated with 'admin' if the
-        # currently logged in user is an admin of the group)
+        # currently logged in user is an admin of the group). nils are removed
+        # from the list.
         result = Elastic.search(query)
         records = @klass.find_by_id(result[HITS][HITS].map {|entry| entry[ID]}) || []
         {
             total: result[HITS][TOTAL] || 0,
-            results: block_given? ? records.map {|record| yield record} : records
+            results: block_given? ? (records.map {|record| yield record}).compact : records
         }
     end
 end
