@@ -40,6 +40,11 @@ class Elastic
             @orFilter.merge!(filters)
         end
 
+        # Applys the query to child objects
+        def has_child(name)
+            @hasChild = name
+        end
+
         def range(filter)
             @rangeFilter ||= []
             @rangeFilter << filter
@@ -123,16 +128,49 @@ class Elastic
 
             if @search.present?
                 # Break the terms up purely on whitespace
-                {
-                    query: {
-                        query_string: {
-                            query: '*' + @search.scan(/\S+/).join('* *') + '*'
-                        }
-                    },
-                    filters: fieldfilters,
-                    offset: @offset,
-                    limit: @limit
-                }
+                query_obj = nil
+
+                if @hasChild
+                    query_obj = {
+                        query: {
+                            bool: {
+                                should: [
+                                    {
+                                        simple_query_string: {
+                                            query: '*' + @search.scan(/\S+/).join('* *') + '*'
+                                        }
+                                    },
+                                    {
+                                        has_child: {
+                                            type: "com",
+                                            query: {
+                                                simple_query_string: {
+                                                    query: '*' + @search.scan(/\S+/).join('* *') + '*'
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        filters: fieldfilters,
+                        offset: @offset,
+                        limit: @limit
+                    }
+                else
+                    query_obj = {
+                        query: {
+                            simple_query_string: {
+                                query: '*' + @search.scan(/\S+/).join('* *') + '*'
+                            }
+                        },
+                        filters: fieldfilters,
+                        offset: @offset,
+                        limit: @limit
+                    }
+                end
+
+                query_obj
             else
                 {
                     sort: @sort || [{created_at: 'desc'}],
