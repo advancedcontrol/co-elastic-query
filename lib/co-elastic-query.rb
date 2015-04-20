@@ -45,6 +45,10 @@ class Elastic
             @hasChild = name
         end
 
+        def has_parent(name)
+            @hasParent = name
+        end
+
         def range(filter)
             @rangeFilter ||= []
             @rangeFilter << filter
@@ -130,27 +134,46 @@ class Elastic
                 # Break the terms up purely on whitespace
                 query_obj = nil
 
-                if @hasChild
+                # update search string
+                @search << '*'
+
+                if @hasChild || @hasParent
+                    should = [{
+                            simple_query_string: {
+                                query: @search
+                            }
+                        }]
+
+                    if @hasChild
+                        should << {
+                                has_child: {
+                                    type: @hasChild,
+                                    query: {
+                                        simple_query_string: {
+                                            query: @search
+                                        }
+                                    }
+                                }
+                            }
+                    end
+
+                    if @hasParent
+                        should << {
+                                has_parent: {
+                                    parent_type: @hasParent,
+                                    query: {
+                                        simple_query_string: {
+                                            query: @search
+                                        }
+                                    }
+                                }
+                            }
+                    end
+
                     query_obj = {
                         query: {
                             bool: {
-                                should: [
-                                    {
-                                        simple_query_string: {
-                                            query: '*' + @search.scan(/\S+/).join('* *') + '*'
-                                        }
-                                    },
-                                    {
-                                        has_child: {
-                                            type: "com",
-                                            query: {
-                                                simple_query_string: {
-                                                    query: '*' + @search.scan(/\S+/).join('* *') + '*'
-                                                }
-                                            }
-                                        }
-                                    }
-                                ]
+                                should: should
                             }
                         },
                         filters: fieldfilters,
@@ -161,7 +184,7 @@ class Elastic
                     query_obj = {
                         query: {
                             simple_query_string: {
-                                query: '*' + @search.scan(/\S+/).join('* *') + '*'
+                                query: @search
                             }
                         },
                         filters: fieldfilters,
@@ -246,7 +269,7 @@ class Elastic
         queries.unshift(opt[:query])
 
         filters = opt[:filters] || []
-        filters.unshift({term: {type: @filter}})
+        filters.unshift({type: {value: @filter}})
 
         query = {
             index: @index,
