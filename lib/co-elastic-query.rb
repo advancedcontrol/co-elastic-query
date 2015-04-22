@@ -246,10 +246,11 @@ class Elastic
     SCORE = '_score'.freeze
     INDEX = (ENV['ELASTIC_INDEX'] || 'default').freeze
 
-    def initialize(klass, index = INDEX)
+    def initialize(klass, opts = {})
         @klass = klass
         @filter = klass.design_document
-        @index = index
+        @index = opts[:index] || INDEX
+        @use_couch_type = opts[:use_couch_type] || false
     end
 
     # Safely build the query
@@ -269,7 +270,12 @@ class Elastic
         queries.unshift(opt[:query])
 
         filters = opt[:filters] || []
-        filters.unshift({type: {value: @filter}})
+
+        if @use_couch_type
+            filters.unshift({term: {type: @filter}})
+        else
+            filters.unshift({type: {value: @filter}})
+        end
 
         query = {
             index: @index,
