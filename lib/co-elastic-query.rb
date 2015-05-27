@@ -2,8 +2,8 @@ require 'elasticsearch'
 
 class Elastic
     class Query
-        def initialize(params)
-            query = params.permit(:q, :limit, :offset)
+        def initialize(params = nil)
+            query = params ? params.permit(:q, :limit, :offset) : {}
 
             @filters = nil
             @search = query[:q]
