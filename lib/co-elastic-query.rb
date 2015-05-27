@@ -244,6 +244,10 @@ class Elastic
         @@client.count *args
     end
 
+    def self.client
+        @@client
+    end
+
     COUNT = 'count'.freeze
     HITS = 'hits'.freeze
     TOTAL = 'total'.freeze
