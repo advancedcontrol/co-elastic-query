@@ -261,6 +261,42 @@ class Elastic
     end
 
     def search(builder, &block)
+        query = generate_body(builder)
+
+        # if a formatter block is supplied, each loaded record is passed to it
+        # allowing annotation/conversion of records using data from the model
+        # and current request (e.g groups are annotated with 'admin' if the
+        # currently logged in user is an admin of the group). nils are removed
+        # from the list.
+        result = Elastic.search(query)
+        records = @klass.find_by_id(result[HITS][HITS].map {|entry| entry[ID]}) || []
+        {
+            total: result[HITS][TOTAL] || 0,
+            results: block_given? ? (records.map {|record| yield record}).compact : records
+        }
+    end
+    
+    def count(builder)
+        query = generate_body(builder)
+
+        # Simplify the query
+        query[:body].delete(:from)
+        query[:body].delete(:size)
+        query[:body].delete(:sort)
+
+        # if a formatter block is supplied, each loaded record is passed to it
+        # allowing annotation/conversion of records using data from the model
+        # and current request (e.g groups are annotated with 'admin' if the
+        # currently logged in user is an admin of the group). nils are removed
+        # from the list.
+        Elastic.count(query)[:count]
+    end
+    
+    
+    protected
+    
+    
+    def generate_body(builder)
         opt = builder.build
 
         sort = opt[:sort] || []
@@ -277,7 +313,7 @@ class Elastic
             filters.unshift({type: {value: @filter}})
         end
 
-        query = {
+        {
             index: @index,
             body: {
                 sort: sort,
@@ -298,18 +334,6 @@ class Elastic
                 from: opt[:offset],
                 size: opt[:limit]
             }
-        }
-
-        # if a formatter block is supplied, each loaded record is passed to it
-        # allowing annotation/conversion of records using data from the model
-        # and current request (e.g groups are annotated with 'admin' if the
-        # currently logged in user is an admin of the group). nils are removed
-        # from the list.
-        result = Elastic.search(query)
-        records = @klass.find_by_id(result[HITS][HITS].map {|entry| entry[ID]}) || []
-        {
-            total: result[HITS][TOTAL] || 0,
-            results: block_given? ? (records.map {|record| yield record}).compact : records
         }
     end
 end
