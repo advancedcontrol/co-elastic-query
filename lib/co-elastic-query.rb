@@ -240,6 +240,10 @@ class Elastic
         @@client.search *args
     end
 
+    def self.count *args
+        @@client.count *args
+    end
+
     COUNT = 'count'.freeze
     HITS = 'hits'.freeze
     TOTAL = 'total'.freeze
@@ -255,7 +259,7 @@ class Elastic
     end
 
     # Safely build the query
-    def query(params, filters = nil)
+    def query(params = nil, filters = nil)
         builder = ::Elastic::Query.new(params)
         builder.filter(filters) if filters
         builder
