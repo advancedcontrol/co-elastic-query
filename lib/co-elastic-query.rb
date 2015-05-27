@@ -240,6 +240,7 @@ class Elastic
         @@client.search *args
     end
 
+    COUNT = 'count'.freeze
     HITS = 'hits'.freeze
     TOTAL = 'total'.freeze
     ID = '_id'.freeze
@@ -289,7 +290,7 @@ class Elastic
         # and current request (e.g groups are annotated with 'admin' if the
         # currently logged in user is an admin of the group). nils are removed
         # from the list.
-        Elastic.count(query)[:count]
+        Elastic.count(query)[COUNT]
     end
     
     
