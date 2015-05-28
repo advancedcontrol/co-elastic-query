@@ -302,9 +302,6 @@ class Elastic
     end
     
     
-    protected
-    
-    
     def generate_body(builder)
         opt = builder.build
 
