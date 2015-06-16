@@ -127,7 +127,7 @@ class Elastic
             end
 
             if @raw_filter
-                fieldfilters = @raw_filter
+                fieldfilters += @raw_filter
             end
 
             if @search.present?
