@@ -24,6 +24,7 @@ class Elastic
 
         def raw_filter(filter)
             @raw_filter = filter
+            self
         end
 
 
@@ -32,12 +33,14 @@ class Elastic
         def filter(filters)
             @filters ||= {}
             @filters.merge!(filters)
+            self
         end
 
         # Like filter however all keys are OR's instead of AND's
         def or_filter(filters)
             @orFilter ||= {}
             @orFilter.merge!(filters)
+            self
         end
 
         # Applys the query to child objects
@@ -52,6 +55,7 @@ class Elastic
         def range(filter)
             @rangeFilter ||= []
             @rangeFilter << filter
+            self
         end
 
         # Call to add fields that should be missing
@@ -59,13 +63,22 @@ class Elastic
         def missing(*fields)
             @missing ||= Set.new
             @missing.merge(fields)
+            self
         end
 
         # The opposite of filter
         def not(filters)
             @nots ||= {}
             @nots.merge!(filters)
+            self
         end
+
+        def exists(*fields)
+            @exists ||= Set.new
+            @exists.merge(fields)
+            self
+        end
+
 
         def build
             if @filters
@@ -122,6 +135,16 @@ class Elastic
                 @missing.each do |field|
                     fieldfilters.push({
                         missing: { field: field }
+                    })
+                end
+            end
+
+            if @exists
+                fieldfilters ||= []
+
+                @exists.each do |field|
+                    fieldfilters.push({
+                        exists: { field: field }
                     })
                 end
             end
