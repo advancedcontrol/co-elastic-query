@@ -23,7 +23,8 @@ class Elastic
         attr_accessor :sort
 
         def raw_filter(filter)
-            @raw_filter = filter
+            @raw_filter ||= []
+            @raw_filter << filter
             self
         end
 
@@ -316,11 +317,6 @@ class Elastic
         query[:body].delete(:size)
         query[:body].delete(:sort)
 
-        # if a formatter block is supplied, each loaded record is passed to it
-        # allowing annotation/conversion of records using data from the model
-        # and current request (e.g groups are annotated with 'admin' if the
-        # currently logged in user is an admin of the group). nils are removed
-        # from the list.
         Elastic.count(query)[COUNT]
     end
     
