@@ -6,7 +6,7 @@ class Elastic
             query = params ? params.permit(:q, :limit, :offset) : {}
 
             @filters = nil
-            @search = query[:q]
+            @search = "#{query[:q]}*"
 
             @limit = query[:limit] || 20
             @limit = @limit.to_i
@@ -154,12 +154,9 @@ class Elastic
                 fieldfilters += @raw_filter
             end
 
-            if @search.present?
+            if @search.length > 1
                 # Break the terms up purely on whitespace
                 query_obj = nil
-
-                # update search string
-                @search << '*'
 
                 if @hasChild || @hasParent
                     should = [{
