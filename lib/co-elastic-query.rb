@@ -217,7 +217,7 @@ class Elastic
                 query_obj
             else
                 {
-                    sort: @sort || [{created_at: 'desc'}],
+                    sort: @sort || DEFAULT_SORT,
                     filters: fieldfilters,
                     query: {
                         match_all: {}
@@ -227,6 +227,13 @@ class Elastic
                 }
             end
         end
+
+        DEFAULT_SORT = [{
+                        created_at: {
+                            order: :desc,
+                            unmapped_type: :integer
+                        }
+                    }]
 
 
         #protected
