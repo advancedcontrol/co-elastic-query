@@ -229,11 +229,10 @@ class Elastic
         end
 
         DEFAULT_SORT = [{
-                        created_at: {
-                            order: :desc,
-                            unmapped_type: :integer
-                        }
-                    }]
+            'doc.created_at' => {
+                order: :desc
+            }
+        }]
 
 
         #protected
