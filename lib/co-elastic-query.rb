@@ -7,6 +7,7 @@ class Elastic
 
             @filters = nil
             @search = "#{query[:q]}*"
+            @fields = ['_all'.freeze]
 
             @limit = query[:limit] || 20
             @limit = @limit.to_i
@@ -18,14 +19,16 @@ class Elastic
         end
 
 
-        attr_accessor :offset
-        attr_accessor :limit
-        attr_accessor :sort
+        attr_accessor :offset, :limit, :sort, :fields
 
         def raw_filter(filter)
             @raw_filter ||= []
             @raw_filter << filter
             self
+        end
+
+        def search_field(field)
+            @fields.unshift(field)
         end
 
 
@@ -161,7 +164,8 @@ class Elastic
                 if @hasChild || @hasParent
                     should = [{
                             simple_query_string: {
-                                query: @search
+                                query: @search,
+                                fields: @fields
                             }
                         }]
 
@@ -171,7 +175,8 @@ class Elastic
                                     type: @hasChild,
                                     query: {
                                         simple_query_string: {
-                                            query: @search
+                                            query: @search,
+                                            fields: @fields
                                         }
                                     }
                                 }
@@ -184,7 +189,8 @@ class Elastic
                                     parent_type: @hasParent,
                                     query: {
                                         simple_query_string: {
-                                            query: @search
+                                            query: @search,
+                                            fields: @fields
                                         }
                                     }
                                 }
@@ -205,7 +211,8 @@ class Elastic
                     query_obj = {
                         query: {
                             simple_query_string: {
-                                query: @search
+                                query: @search,
+                                fields: @fields
                             }
                         },
                         filters: fieldfilters,
