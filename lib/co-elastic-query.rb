@@ -286,7 +286,7 @@ class Elastic
     HITS = 'hits'.freeze
     TOTAL = 'total'.freeze
     ID = '_id'.freeze
-    SCORE = '_score'.freeze
+    SCORE = ['_score'.freeze]
     INDEX = (ENV['ELASTIC_INDEX'] || 'default').freeze
 
     def initialize(klass, opts = {})
@@ -334,8 +334,7 @@ class Elastic
     def generate_body(builder)
         opt = builder.build
 
-        sort = opt[:sort] || []
-        sort << SCORE
+        sort = (opt[:sort] || []) + SCORE
 
         queries = opt[:queries] || []
         queries.unshift(opt[:query])
