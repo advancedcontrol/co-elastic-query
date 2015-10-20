@@ -154,6 +154,7 @@ class Elastic
             end
 
             if @raw_filter
+                fieldfilters ||= []
                 fieldfilters += @raw_filter
             end
 
