@@ -125,9 +125,9 @@ class Elastic
                 fieldfilters ||= []
 
                 @nots.each do |key, value|
-                    fieldfilter = { :not => { :or => [] } }
-                    build_filter(fieldfilter[:not][:or], key, value)
-                    unless fieldfilter[:not].empty?
+                    fieldfilter = { not: { filter: { or: [] } } }
+                    build_filter(fieldfilter[:not][:filter][:or], key, value)
+                    unless fieldfilter[:not][:filter][:or].empty?
                         fieldfilters.push(fieldfilter)
                     end
                 end
@@ -353,10 +353,12 @@ class Elastic
             body: {
                 sort: sort,
                 query: {
-                    filtered: {
-                        query: {
-                            bool: {
-                                must: queries
+                    bool: {
+                        must: {
+                            query: {
+                                bool: {
+                                    must: queries
+                                }
                             }
                         },
                         filter: {
