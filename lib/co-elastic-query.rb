@@ -47,6 +47,12 @@ class Elastic
             self
         end
 
+        def and_filter(filters)
+            @andFilter ||= {}
+            @andFilter.merge!(filters)
+            self
+        end
+
         # Applys the query to child objects
         def has_child(name)
             @hasChild = name
@@ -109,6 +115,20 @@ class Elastic
                 end
 
                 unless orArray.empty?
+                    fieldfilters.push(fieldfilter)
+                end
+            end
+
+            if @andFilter
+                fieldfilters ||= []
+                fieldfilter = { :and => [] }
+                andArray = fieldfilter[:and]
+
+                @andFilter.each do |key, value|
+                    build_filter(andArray, key, value)
+                end
+
+                unless andArray.empty?
                     fieldfilters.push(fieldfilter)
                 end
             end
