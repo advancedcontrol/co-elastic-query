@@ -19,7 +19,7 @@ class Elastic
         end
 
 
-        attr_accessor :offset, :limit, :sort, :fields
+        attr_accessor :offset, :limit, :sort, :fields, :query_settings
 
         def raw_filter(filter)
             @raw_filter ||= []
@@ -189,6 +189,10 @@ class Elastic
                                 fields: @fields
                             }
                         }]
+
+                    if @query_settings
+                        should[0][:simple_query_string].merge! @query_settings
+                    end
 
                     if @hasChild
                         should << {
