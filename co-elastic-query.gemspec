@@ -19,4 +19,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rake',    '~> 11.0'
 
   spec.add_dependency       'elasticsearch', '~> 2.0'
+  spec.add_dependency       'uv-rays',       '~> 2.0'
 end

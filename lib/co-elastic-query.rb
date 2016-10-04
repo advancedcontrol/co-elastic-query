@@ -1,4 +1,5 @@
 require 'elasticsearch'
+require 'faraday/adapter/libuv'
 
 class Elastic
     class Query
@@ -294,7 +295,7 @@ class Elastic
         ['localhost:9200']
     end
 
-    @@client ||= Elasticsearch::Client.new hosts: HOST, reload_connections: true
+    @@client ||= Elasticsearch::Client.new hosts: HOST, reload_connections: true, adapter: :libuv
     def self.search *args
         @@client.search *args
     end
