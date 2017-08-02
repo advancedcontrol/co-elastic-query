@@ -339,9 +339,19 @@ class Elastic
         # from the list.
         result = Elastic.search(query)
         records = Array(@klass.find_by_id(result[HITS][HITS].map {|entry| entry[ID]}))
+        results = block_given? ? (records.map {|record| yield record}).compact : records
+
+        # Ensure the total is accurate
+        total = result[HITS][TOTAL] || 0
+        total = total - (records.length - results.length) # adjust for compaction
+
+        # We check records against limit (pre-compaction) and total against actual result length
+        # Worst case senario is there is one additional request for results at an offset that returns no results.
+        # The total results number will be accurate on the final page of results from the clients perspective.
+        total = results.length + builder.offset if records.length < builder.limit && total > (results.length + builder.offset)
         {
-            total: result[HITS][TOTAL] || 0,
-            results: block_given? ? (records.map {|record| yield record}).compact : records
+            total: total,
+            results: results
         }
     end
     
