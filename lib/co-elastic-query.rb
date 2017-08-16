@@ -378,7 +378,7 @@ class Elastic
         filters = opt[:filters] || []
 
         if @use_couch_type
-            filters.unshift({term: {type: @filter}})
+            filters.unshift({term: {'doc.type' => @filter}})
         else
             filters.unshift({type: {value: @filter}})
         end
