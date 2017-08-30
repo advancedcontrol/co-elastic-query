@@ -315,9 +315,11 @@ class Elastic
     SCORE = ['_score'.freeze]
     INDEX = (ENV['ELASTIC_INDEX'] || 'default').freeze
 
-    def initialize(klass, opts = {})
-        @klass = klass
-        @filter = klass.design_document
+    def initialize(klass = nil, **opts)
+        if klass
+            @klass = klass
+            @filter = klass.design_document
+        end
         @index = opts[:index] || INDEX
         @use_couch_type = opts[:use_couch_type] || false
     end
@@ -338,7 +340,11 @@ class Elastic
         # currently logged in user is an admin of the group). nils are removed
         # from the list.
         result = Elastic.search(query)
-        records = Array(@klass.find_by_id(result[HITS][HITS].map {|entry| entry[ID]}))
+        records = if @klass
+            Array(@klass.find_by_id(result[HITS][HITS].map {|entry| entry[ID]}))
+        else
+            Array(result[HITS][HITS].map { |entry| ::CouchbaseOrm.try_load(entry[ID]) }).compact
+        end
         results = block_given? ? (records.map {|record| yield record}).compact : records
 
         # Ensure the total is accurate
@@ -377,10 +383,12 @@ class Elastic
 
         filters = opt[:filters] || []
 
-        if @use_couch_type
-            filters.unshift({term: {'doc.type' => @filter}})
-        else
-            filters.unshift({type: {value: @filter}})
+        if @filter
+            if @use_couch_type
+                filters.unshift({term: {'doc.type' => @filter}})
+            else
+                filters.unshift({type: {value: @filter}})
+            end
         end
 
         {
