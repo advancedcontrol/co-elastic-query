@@ -12,7 +12,7 @@ class Elastic
 
             @limit = query[:limit] || 20
             @limit = @limit.to_i
-            @limit = 500 if @limit > 500
+            @limit = 10000 if @limit > 10000
 
             @offset = query[:offset] || 0
             @offset = offset.to_i
