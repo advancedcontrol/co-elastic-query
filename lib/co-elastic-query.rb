@@ -308,6 +308,10 @@ class Elastic
         @@client
     end
 
+    def self.new_client
+      @@client = Elasticsearch::Client.new hosts: HOST, reload_connections: true, adapter: :libuv
+    end
+
     COUNT = 'count'.freeze
     HITS = 'hits'.freeze
     TOTAL = 'total'.freeze
@@ -360,7 +364,7 @@ class Elastic
             results: results
         }
     end
-    
+
     def count(builder)
         query = generate_body(builder)
 
@@ -371,8 +375,8 @@ class Elastic
 
         Elastic.count(query)[COUNT]
     end
-    
-    
+
+
     def generate_body(builder)
         opt = builder.build
 
@@ -416,4 +420,15 @@ class Elastic
             }
         }
     end
+end
+
+Thread.new do
+  loop do
+    sleep 600
+    begin
+      Elastic.new_client
+    rescue => e
+      puts "failed to create new elastic client: #{e.message}"
+    end
+  end
 end
